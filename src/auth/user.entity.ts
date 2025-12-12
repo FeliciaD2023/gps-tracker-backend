@@ -12,6 +12,9 @@ export class User {
     @Column()
     password: string;
 
+    @Column({default: 1})
+    role: number; // 1: end user, 2. admin
+
     @CreateDateColumn({type: 'timestamp with time zone', precision: 0})
     created_utc: Date;
 

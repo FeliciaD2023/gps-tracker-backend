@@ -1,7 +1,7 @@
 import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Unique } from "typeorm";
 
 @Entity()
-@Unique(['device_id', 'user_name'])
+@Unique(['device_id', 'user_id'])
 export class UserDevice {
     @PrimaryGeneratedColumn()
     id: number;
@@ -9,8 +9,11 @@ export class UserDevice {
     @Column()
     device_id: string;
 
-    @Column({nullable: true})
+    @Column()
     user_name: string;
+
+    @Column()
+    user_id: number;
 
     @Column({default: true})
     is_valid: boolean;

@@ -4,6 +4,7 @@ import { PassportStrategy } from "@nestjs/passport";
 import { Injectable } from "@nestjs/common";
 import { EntityManager } from "typeorm";
 import { User } from "../user.entity";
+import { AES, enc } from 'crypto-js';
 
 @Injectable()
 export class JwtStrategy extends PassportStrategy(Strategy, "jwt-strategy") {
@@ -17,11 +18,31 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt-strategy") {
     }
 
     /** return user through the token */
-    async validate({ user_name }) {
-        return await this.eManager.findOne(User, {
-            where: {
-                user_name
+    async validate(payload) {
+        console.log('token payloadin validate: ', payload);
+
+        try {
+            const decrypted = AES.decrypt(payload?.user, process.env.JWT_PAYLOAD_KEY).toString(enc.Utf8);
+            // console.log('decrypted token: ', decrypted);
+            const decodedPayload = JSON.parse(decrypted);
+            if(!decodedPayload?.user_id) {
+                throw new Error();
             }
-        });
+
+            const userInfo =  await this.eManager.findOne(User, {
+                where: {
+                    id: decodedPayload.user_id
+                }
+            });
+
+            return {
+                user_id: userInfo.id,
+                user_name: userInfo.user_name,
+                role: userInfo.role
+            };
+        } catch (error) {
+            console.log('err in validate: ', error);
+            throw new Error('Required user information missing in JWT payload');
+        }
     }
 }

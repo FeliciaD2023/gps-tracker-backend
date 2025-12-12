@@ -30,25 +30,10 @@ import { DeviceModule } from './device/device.module';
             // the inject property here indicates that an INSTANCE of the specified dependency should be created and injected into the useFactory function.(here is the configService)
         }),
 
-        // TypeOrmModule.forRoot({
-        //     type: 'postgres',
-        //     host: 'gps-tracker-demo.cckn0wbphxgb.ap-southeast-2.rds.amazonaws.com',
-        //     port: 5432,
-        //     database: 'gpsTracker',
-        //     username: 'gpsTrackerAdmin',
-        //     password: 'cECr$pRUg1Rot7M2DRE3',
-        //     autoLoadEntities: true,
-        //     synchronize: true,
-        //     ssl: {
-        //         rejectUnauthorized: false
-        //     }
-
-        // }),
-
         TrackerModule,
         DeviceModule,
         AuthModule,
-        // TypeOrmModule.forRoot(configService.getTypeOrmConfig()),
+
 
     ],
     controllers: [AppController],

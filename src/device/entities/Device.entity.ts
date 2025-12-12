@@ -12,7 +12,7 @@ export class Device {
     @Column({nullable: true})
     user: string;
 
-    @Column({nullable: true})
+    @Column({default: 'Tracker'})
     device_name: string;
 
     @Column({type: 'timestamp with time zone', precision: 0, nullable: true})

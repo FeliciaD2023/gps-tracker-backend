@@ -13,7 +13,8 @@ export class DeviceController {
 
     @Get('get-user-devices')
     getUserDevices(@Request() req) {
-        return this.service.getUserDevices(req.user.user_name);
+        console.log('req in get-user-devices: ', req);
+        return this.service.getUserDevices(req.user.user_id);
     }
 
     @Post('create-device')

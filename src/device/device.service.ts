@@ -19,13 +19,13 @@ export class DeviceService {
         }
     }
 
-    async getUserDevices(userName: string) {
+    async getUserDevices(userId: number) {
         // console.log('username?: ', userName);
         const deviceIdList = await this.eManager.find(UserDevice, {
             select: {device_id: true},
             where: {
-                user_name: userName,
-                is_valid: true
+                is_valid: true,
+                user_id: userId,
             },
         });
 

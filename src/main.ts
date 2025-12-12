@@ -15,9 +15,18 @@ async function bootstrap() {
     // }
 
     const app = await NestFactory.create(AppModule); //, {httpsOptions});
+    // console.log('>>> [bootstrap] After NestFactory.create(AppModule)');
 
     // CORS
     app.enableCors();
+
+    // For testing: main.ts or in a module middleware
+    app.use((req, _res, next) => {
+        const auth = req.headers['authorization'];
+        console.log('Authorization header:', auth);
+        next();
+    });
+
 
     // pipes
     app.useGlobalPipes(new ValidationPipe({ transform: true }));
@@ -33,7 +42,10 @@ async function bootstrap() {
 
     // listen port
     const port = configService.get<string>('APP_PORT');
+
+    // console.log(`>>> [bootstrap] Before app.listen(${port})`);
     await app.listen(port);
+    // console.log('>>> [bootstrap] After app.listen');
 }
 
 bootstrap();
