@@ -1,0 +1,54 @@
+user
+
+{
+  "user_name": "MessageProcesserUser",
+  "password": "abcdefg"
+}
+
+{
+  "result": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJNZXNzYWdlUHJvY2Vzc2VyVXNlciIsImlhdCI6MTcwNTQ2MDQxOH0.wisMr6IJ0wbIyMthbg1IEHXX0b5BQgQFdRfJEFkDnbk"
+  }
+}
+
+{
+  "device_id": "AXTCL_5BSECDSGWF",
+  "lat": -31.914893,
+  "lng": 116.6778,
+  "utc": "2023-01-05 03:08:14",
+  "hop": 0.9,
+  "satellite_num": 8,
+  "altitude": 89,
+  "battery": 3.2,
+  "signal_strength": 23
+}
+
+
+{
+  "user_name": "LocalTestUser",
+  "password": "abcdefg"
+}
+
+{
+  "result": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJMb2NhbFRlc3RVc2VyIiwiaWF0IjoxNzA1NDc2MzU4fQ.7Zq4eA4-riravS1iTVqvtlAyi_iFQRgdVq-vprdiArI"
+  }
+}
+
+
+
+client account
+
+{
+  "user_name": "beehives",
+  "password": "trackers123"
+}
+
+{
+  "result": "success",
+  "data": {
+    "token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VyX25hbWUiOiJiZWVoaXZlcyIsImlhdCI6MTcwNTQ3OTIwOH0.aHRzofEzWTeytqJClbziovylDx1OxA_8UWwwL30v9yY"
+  }
+}
