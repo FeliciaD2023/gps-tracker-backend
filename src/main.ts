@@ -23,7 +23,7 @@ async function bootstrap() {
     // For testing: main.ts or in a module middleware
     app.use((req, _res, next) => {
         const auth = req.headers['authorization'];
-        console.log('Authorization header:', auth);
+        // console.log('Authorization header:', auth);
         next();
     });
 

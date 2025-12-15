@@ -1,6 +1,7 @@
-import { Column, CreateDateColumn, Entity, PrimaryGeneratedColumn, Unique, UpdateDateColumn } from "typeorm";
+import { Column, CreateDateColumn, Entity, Index, PrimaryGeneratedColumn } from "typeorm";
 
 @Entity()
+@Index(['device_id', 'utc'], {unique: true})
 export class GpsMessage {
     @PrimaryGeneratedColumn()
     id: number;

@@ -47,7 +47,7 @@ export class AuthService {
 
     async validateUser(user: ValidateUserDto) {
         // console.log('user in validateUser: ', user)
-        const result = await this.eManager.findOne(User, {select: {password: true}, where: {user_name: user.user_name}});
+        const result = await this.eManager.findOne(User, {where: {user_name: user.user_name}});
         
         // console.log('get user: ', result);
         if(!result) {
