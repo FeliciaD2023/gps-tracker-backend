@@ -1,76 +1,120 @@
-import { Injectable } from '@nestjs/common';
-import { EntityManager } from 'typeorm';
-import { CreateDeviceDto } from './dto/createDevice.dto';
-import { Device } from './entities/Device.entity';
-import { UserDevice } from './entities/UserDevice.entity';
+import { Injectable } from "@nestjs/common";
+import { EntityManager, In } from "typeorm";
+import { CreateDeviceDto } from "./dto/createDevice.dto";
+import { Device } from "./entities/Device.entity";
+import { UserDevice } from "./entities/UserDevice.entity";
 // import { GpsMessage } from 'src/gps-tracker/entities/gpsMessage.entity';
 
 @Injectable()
 export class DeviceService {
-    constructor (
-        private readonly eManager: EntityManager,
-    ) {}
+    constructor(private readonly eManager: EntityManager) {}
 
     async getAllDevices() {
         const result = await this.eManager.find(Device);
         // console.log(result);
-        if(!result) {
-            return {result: "failed"};
+        if (!result) {
+            return { result: "failed" };
         }
     }
 
-    async getUserDevices(userId: number) {
+    async getUserDevices(userId: number, userRole: number) {
+        console.log('get usoe orw: ', userRole);
         // console.log('username?: ', userName);
-        const deviceIdList = await this.eManager.find(UserDevice, {
-            select: {device_id: true},
-            where: {
-                is_valid: true,
-                user_id: userId,
-            },
-        });
+        let deviceList;
+        if (userRole == 2) {
+            // admin - get all users of a device
+            deviceList = await this.eManager.query(`
+                SELECT
+                    device_id,
+                    ARRAY_AGG(DISTINCT user_name) AS users
+                FROM public.user_device
+
+                GROUP BY device_id
+            ;`);
+
+            //                 WHERE is_valid = true
+        } else {
+            deviceList = await this.eManager.find(UserDevice, {
+                select: { device_id: true },
+                where: {
+                    is_valid: true,
+                    user_id: userId,
+                },
+            });
+        }
 
         // console.log('device list: ', deviceIdList);
 
-        let result;
-        let promises = [];
-        if(!deviceIdList) {
-            return {result: "failed"};
-        } else {
-            
-            deviceIdList.forEach(device => {
-                const promise = this.eManager.findOneBy(Device, {device_id: device.device_id})
-                promises.push(promise);
-            })
-            result = await Promise.all(promises);
+        if (!deviceList) {
+            return { result: "failed" };
         }
+
+        const deviceIds = deviceList.map((d) => d.device_id);
+        const deviceInfos = await this.eManager.find(Device, {
+            select: ['device_id', 'last_report', 'device_name'],
+            where: {
+                device_id: In(deviceIds),
+            },
+        });
 
         // console.log('result: ', result);
+
+        if (!deviceInfos) {
+            return { result: "failed" };
+        }
+        const locations = await this.eManager.query(
+            `
+            SELECT DISTINCT ON (device_id)
+                device_id, lat, lng
+            FROM gps_message
+            WHERE device_id = ANY($1)
+                AND lng <> 0
+            ORDER BY device_id, utc DESC
+        `,
+            [deviceIds],
+        );
+
+        // console.log('locations:', locations);
+        // locations: [ [ { lat: 0, lng: 0 } ], [ { lat: 0, lng: 0 } ] ]
+        const locationMap = new Map(locations.map((location) => [location.device_id, location]));
+        let usersMap;
+        if (userRole == 2) {
+            usersMap = new Map(deviceList.map(device => [device.device_id, device.users]));
+        }
+
+        const data = [];
         
-        if(!result) {
-            return {result: "failed"};
-        } else {
-            promises = [];
-            result.forEach(device => {
-                const promise = this.eManager.query(`
-                    select lat, lng
-                    from gps_message 
-                    where device_id='${device.device_id}' and lng !=0
-                    order by utc desc
-                    limit 1
-                ;`)
-                promises.push(promise);
-            })
-            const locations = await Promise.all(promises);
-            // console.log(result);
-            // console.log('locations:', locations); 
-            // locations: [ [ { lat: 0, lng: 0 } ], [ { lat: 0, lng: 0 } ] ]
-            const inteResult = [];
-            for(const i in result) {
-                inteResult.push({...result[i], ...locations[i][0]});
+        for(const device of deviceInfos){
+            const location: any = locationMap.get(device.device_id) ?? {lat: null, lng: null};
+            const row = {
+                ...device,
+                lat: location.lat,
+                lng: location.lng
+            };
+
+            if(userRole == 2){
+                row['users'] = usersMap.get(device.device_id);
             }
 
-            return {result: 'success', data: inteResult};
+            data.push(row);
         }
+            
+        return { result: "success", data };
+    }
+
+    async getUserDeviceOptions(userId: number) {
+        const data = await this.eManager.query(
+            `
+            SELECT d.device_id, d.device_name
+            FROM device d
+            LEFT JOIN user_device ud
+                ON ud.device_id = d.device_id
+            WHERE ud.user_id = $1
+        `,
+            [userId],
+        );
+
+        return { result: "success", data };
     }
 
     async createDevice(createDeviceDto: CreateDeviceDto) {
@@ -91,18 +135,19 @@ export class DeviceService {
     }
 
     async updateDeviceName(deviceName: string, deviceId: string) {
-        const device = await this.eManager.findOneBy(Device, {device_id: deviceId});
+        const device = await this.eManager.findOneBy(Device, {
+            device_id: deviceId,
+        });
         device.device_name = deviceName;
         const result = await this.eManager.save(device);
         // console.log('change device name result: ', result);
-        if(!result.id) {
-            return {result: 'failed'}
+        if (!result.id) {
+            return { result: "failed" };
         }
 
         return {
-            result: 'success',
-            data: result
-        }
+            result: "success",
+            data: result,
+        };
     }
-
 }

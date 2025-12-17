@@ -6,15 +6,20 @@ import { CreateDeviceDto } from './dto/createDevice.dto';
 export class DeviceController {
     constructor(private readonly service: DeviceService) {}
 
-    @Get('get-all-devices')
+    @Get('get-all-devices') // not in use
     getAllDevices() {
         return this.service.getAllDevices();
     }
 
     @Get('get-user-devices')
     getUserDevices(@Request() req) {
-        console.log('req in get-user-devices: ', req);
-        return this.service.getUserDevices(req.user.user_id);
+        console.log('req in get-user-devices: ', req.user);
+        return this.service.getUserDevices(req.user?.user_id, req.user?.role);
+    }
+
+    @Get('get-user-device-options')
+    getUserDeviceOptions(@Request() req) {
+        return this.service.getUserDeviceOptions(req.user?.user_id);
     }
 
     @Post('create-device')

@@ -19,7 +19,7 @@ export class JwtStrategy extends PassportStrategy(Strategy, "jwt-strategy") {
 
     /** return user through the token */
     async validate(payload) {
-        console.log('token payloadin validate: ', payload);
+        // console.log('token payloadin validate: ', payload);
 
         try {
             const decrypted = AES.decrypt(payload?.user, process.env.JWT_PAYLOAD_KEY).toString(enc.Utf8);
