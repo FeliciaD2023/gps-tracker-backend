@@ -41,6 +41,27 @@ export class TrackerService {
         
     }
 
+    async getNewMessagesMultiple (userId: number, lastTime: string | null) {
+        const data = await this.eManager.query(`
+            SELECT DISTINCT ON (g.device_id) 
+                g.device_id, g.signal_strength, g.battery, g.lat, g.lng, g.utc 
+            FROM gps_message g 
+            JOIN user_device ud 
+                ON ud.device_id = g.device_id 
+            WHERE ud.user_id = $1 
+                AND g.lng != 0 
+                AND g.utc > $2 
+            ORDER BY g.device_id, g.utc DESC;
+        ;`, [userId, lastTime]);
+
+        // if no gps msg after lastTime, then no row for that device
+        return {
+            result: 'success',
+            data
+        }
+        
+    }
+
     async createNewMessage(createMessageDto: CreateGpsMessageDto) {
         const newMesssage = new GpsMessage(createMessageDto);
         const result = await this.eManager.save(newMesssage);
@@ -72,10 +93,4 @@ export class TrackerService {
         }
     }
 
-    async test() {
-        // const randomBytes = lib.WordArray.random(32);
-        // const key = enc.Base64.stringify(randomBytes);
-        // console.log('key: ', key);
-        return 'Hello Tracker';
-    }
 }

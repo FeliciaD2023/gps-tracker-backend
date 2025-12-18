@@ -17,8 +17,8 @@ export class DeviceService {
         }
     }
 
-    async getUserDevices(userId: number, userRole: number) {
-        console.log('get usoe orw: ', userRole);
+    async getUserDevices(userId: number, userRole: number, noGps: boolean = false) {
+        console.log("get usoe orw: ", userRole);
         // console.log('username?: ', userName);
         let deviceList;
         if (userRole == 2) {
@@ -28,11 +28,11 @@ export class DeviceService {
                     device_id,
                     ARRAY_AGG(DISTINCT user_name) AS users
                 FROM public.user_device
-
+                WHERE is_valid = true
                 GROUP BY device_id
             ;`);
 
-            //                 WHERE is_valid = true
+            //
         } else {
             deviceList = await this.eManager.find(UserDevice, {
                 select: { device_id: true },
@@ -51,7 +51,7 @@ export class DeviceService {
 
         const deviceIds = deviceList.map((d) => d.device_id);
         const deviceInfos = await this.eManager.find(Device, {
-            select: ['device_id', 'last_report', 'device_name'],
+            select: ["device_id", "last_report", "device_name"],
             where: {
                 device_id: In(deviceIds),
             },
@@ -62,8 +62,15 @@ export class DeviceService {
         if (!deviceInfos) {
             return { result: "failed" };
         }
-        const locations = await this.eManager.query(
-            `
+        const data = [];
+        let usersMap;
+        if (userRole == 2) {
+            usersMap = new Map(deviceList.map((device) => [device.device_id, device.users]));
+        }
+
+        if (!noGps) {
+            const locations = await this.eManager.query(
+                `
             SELECT DISTINCT ON (device_id)
                 device_id, lat, lng
             FROM gps_message
@@ -71,34 +78,41 @@ export class DeviceService {
                 AND lng <> 0
             ORDER BY device_id, utc DESC
         `,
-            [deviceIds],
-        );
+                [deviceIds],
+            );
 
-        // console.log('locations:', locations);
-        // locations: [ [ { lat: 0, lng: 0 } ], [ { lat: 0, lng: 0 } ] ]
-        const locationMap = new Map(locations.map((location) => [location.device_id, location]));
-        let usersMap;
-        if (userRole == 2) {
-            usersMap = new Map(deviceList.map(device => [device.device_id, device.users]));
-        }
+            // console.log('locations:', locations);
+            // locations: [ [ { lat: 0, lng: 0 } ], [ { lat: 0, lng: 0 } ] ]
+            const locationMap = new Map(locations.map((location) => [location.device_id, location]));
 
-        const data = [];
-        
-        for(const device of deviceInfos){
-            const location: any = locationMap.get(device.device_id) ?? {lat: null, lng: null};
-            const row = {
-                ...device,
-                lat: location.lat,
-                lng: location.lng
-            };
+            for (const device of deviceInfos) {
+                const location: any = locationMap.get(device.device_id) ?? { lat: null, lng: null };
+                const row = {
+                    ...device,
+                    lat: location.lat,
+                    lng: location.lng,
+                };
 
-            if(userRole == 2){
-                row['users'] = usersMap.get(device.device_id);
+                if (userRole == 2) {
+                    row["users"] = usersMap.get(device.device_id);
+                }
+
+                data.push(row);
             }
+        } else {
+            for (const device of deviceInfos) {
+                const row = {
+                    ...device,
+                };
 
-            data.push(row);
+                if (userRole == 2) {
+                    row["users"] = usersMap.get(device.device_id);
+                }
+
+                data.push(row);
+            }
         }
-            
+
         return { result: "success", data };
     }
 

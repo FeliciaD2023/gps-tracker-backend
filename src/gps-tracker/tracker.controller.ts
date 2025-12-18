@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Param, Post, UseGuards } from "@nestjs/common";
+import { Body, Controller, Get, Request, Post, UseGuards } from "@nestjs/common";
 import { TrackerService } from "./tracker.service";
 import { CreateGpsMessageDto } from "./createGpsMessage.dto";
 import { Public } from "src/auth/utils/public";
@@ -10,6 +10,7 @@ type GetNewMessages = {
     desc?: boolean
 }
 
+
 @Controller('tracking')
 export class TrackerController {
     constructor(private readonly service: TrackerService) {}
@@ -19,6 +20,11 @@ export class TrackerController {
         return this.service.getNewMessages(params.device_id, params.last_time, params.desc);
     }
 
+    @Post('get-new-messages-multiple')
+    getNewMessagesMultiple(@Request() req, @Body() params: {last_time?: string}){
+        return this.service.getNewMessagesMultiple(req.user.user_id, params.last_time);
+    }
+
     @Public()
     @UseGuards(JwtLocalAuthGuard)
     @Post('create-new-message')
@@ -26,10 +32,5 @@ export class TrackerController {
         return this.service.createNewMessage(createMessageDto);
     }
 
-    
-    @Public()
-    @Get('test')
-    getTest() {
-        return this.service.test();
-    }
+
 }
