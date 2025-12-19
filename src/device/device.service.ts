@@ -124,6 +124,7 @@ export class DeviceService {
             LEFT JOIN user_device ud
                 ON ud.device_id = d.device_id
             WHERE ud.user_id = $1
+                AND ud.is_valid = true
         `,
             [userId],
         );
