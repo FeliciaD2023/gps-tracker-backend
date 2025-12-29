@@ -13,7 +13,7 @@ export class DeviceController {
 
     @Get("get-user-devices")
     getUserDevices(@Request() req, @Query('noGps') noGps: string) {
-        console.log("req in get-user-devices: ", req.user);
+        // console.log("req in get-user-devices: ", req.user);
         return this.service.getUserDevices(req.user?.user_id, req.user?.role, noGps == "true" ? true : false);
     }
 

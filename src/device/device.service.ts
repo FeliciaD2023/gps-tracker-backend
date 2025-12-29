@@ -18,7 +18,7 @@ export class DeviceService {
     }
 
     async getUserDevices(userId: number, userRole: number, noGps: boolean = false) {
-        console.log("get usoe orw: ", userRole);
+        // console.log("get usoe orw: ", userRole);
         // console.log('username?: ', userName);
         let deviceList;
         if (userRole == 2) {
